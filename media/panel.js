@@ -138,14 +138,11 @@
     const T = (hi, enT) => (en ? enT : hi);
 
     // header + controls
-    const langSel = el('select', { onchange: e => vsc.postMessage({ t: 'lang', lang: e.target.value }) },
-      el('option', { value: 'hi', selected: !en }, 'Hinglish'), el('option', { value: 'en', selected: en }, 'English'));
     const targetSel = el('select', { onchange: e => vsc.postMessage({ t: 'target', target: e.target.value }) },
       ...[25, 21, 17, 11].map(v => el('option', { value: String(v), selected: m.target === v }, 'Java ' + v)));
     app.append(el('div', { class: 'top' },
       el('div', { class: 'brand' }, el('span', { class: 'logo' }, 'P'), el('div', {}, el('h1', {}, 'Punarnava'), el('div', { class: 'muted' }, m.file))),
       el('div', { class: 'controls' },
-        el('label', {}, T('Bhasha ', 'Language '), langSel),
         el('label', {}, 'Target ', targetSel))));
 
     // summary

@@ -56,7 +56,7 @@ function defaultEnabled() {
 function modernize(source, opts = {}) {
   const target = opts.target || 25;
   const enabled = new Set(opts.enabled || defaultEnabled());
-  const lang = opts.lang || 'hi';
+  const lang = opts.lang || 'en';   // English default (1.0.1)
   // Windows files mein \r\n hota hai — andar \n par kaam karo, end mein wapas lagao.
   const crlf = /\r\n/.test(source);
   let src = source.replace(/\r\n/g, '\n');

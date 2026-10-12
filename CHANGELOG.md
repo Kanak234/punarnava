@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.0.1 — 2026-10-13
+
+### Changed
+
+- **Everything is in English by default** — explanations, common mistakes, quiz,
+  buttons, CodeLens, hints and notifications — so students everywhere in India can
+  use it. The panel's language picker is removed (a `punarnava.language` setting
+  still exists).
+
+
 ## 1.0.0 — 2026-10-12
 
 First release.

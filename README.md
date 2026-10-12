@@ -1,7 +1,7 @@
 # Punarnava — purane Java ko naya Java banao, aur samjho bhi
 
 **Punarnava** (पुनर्नव, *"jo phir se naya ho jaye"*) is a free VS Code extension that turns
-old-style Java into modern Java 25 — **side-by-side, with a Hinglish or English explanation
+old-style Java into modern Java 25 — **side-by-side, with a plain-English explanation
 and a mini quiz for every single change**.
 
 Tools like OpenRewrite and IntelliJ can migrate code. They don't teach you *why*.
@@ -61,7 +61,7 @@ instance main) · `Scanner` loops using `hasNextInt()`.
 - Or press **Ctrl+Alt+J** (**Cmd+Alt+J** on macOS), or click the ✨ icon in the editor title bar.
 - In the panel: **Apply to file** (undo with Ctrl+Z) · **Open in new tab** (your file stays
   untouched) · **Check with javac** · **▶ Run old / ▶ Run new** in the terminal to compare.
-- Switch explanations between **Hinglish** and **English**, and choose a **Target Java**
+- Choose a **Target Java**
   (25 / 21 / 17 / 11) to match the JDK you have installed.
 - `Punarnava: Open an old-Java example` gives you four ready programs to try.
 
@@ -79,7 +79,7 @@ same input, and their output must match **byte for byte**. Plus unit tests for e
 
 | Setting | Default | |
 |---|---|---|
-| `punarnava.language` | `hinglish` | `hinglish` or `english` |
+| `punarnava.language` | `english` | `english` (or `hinglish`) |
 | `punarnava.targetJava` | `25` | newest Java features to use |
 | `punarnava.enableReviewRules` | `[]` | `scanner-to-io`, `record-class` |
 | `punarnava.jdkPath` | | JDK folder for Check/Run (else `JAVA_HOME`/PATH) |

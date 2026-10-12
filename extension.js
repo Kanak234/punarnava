@@ -22,7 +22,7 @@ let panel;                 // ek hi learning panel (dobara command → wahi pane
 let panelDoc;              // panel kis document ke liye khula hai
 let diagnostics;           // Problems tab mein "hint" level suggestions
 let out;                   // Output channel: PUNARNAVA
-let state = { review: [], lang: 'hi', target: 25 };   // panel ke toggles
+let state = { review: [], lang: 'en', target: 25 };   // panel ke toggles
 
 function activate(context) {
   out = vscode.window.createOutputChannel('Punarnava');
@@ -55,7 +55,7 @@ function activate(context) {
 function cfg() {
   const c = vscode.workspace.getConfiguration('punarnava');
   return {
-    lang: c.get('language', 'hinglish') === 'english' ? 'en' : 'hi',
+    lang: c.get('language', 'english') === 'hinglish' ? 'hi' : 'en',
     target: Number(c.get('targetJava', '25')),
     reviewRules: c.get('enableReviewRules', []),
     jdkPath: c.get('jdkPath', ''),
@@ -85,7 +85,7 @@ class LensProvider {
     line = mi >= 0 ? mi : (ci >= 0 ? ci : 0);
     const range = new vscode.Range(line, 0, line, 0);
     return [
-      new vscode.CodeLens(range, { title: '✦ Punarnava: ' + res.changes.length + ' modern Java ' + (res.changes.length === 1 ? 'badlaav' : 'badlaav') + ' — dekho aur seekho', command: 'punarnava.modernize', arguments: [doc.uri] }),
+      new vscode.CodeLens(range, { title: '✦ Punarnava: ' + res.changes.length + ' modern Java ' + (res.changes.length === 1 ? 'change' : 'changes') + ' — see and learn', command: 'punarnava.modernize', arguments: [doc.uri] }),
       new vscode.CodeLens(range, { title: 'Apply safe', command: 'punarnava.applySafe', arguments: [doc.uri] })
     ];
   }
@@ -119,15 +119,15 @@ class QuickFixes {
   provideCodeActions(doc, range, ctx) {
     const acts = [];
     for (const d of ctx.diagnostics.filter(x => x.source === 'Punarnava')) {
-      const a = new vscode.CodeAction('Punarnava: sirf yeh badlaav lagao (' + d.code + ')', vscode.CodeActionKind.QuickFix);
+      const a = new vscode.CodeAction('Punarnava: apply only this change (' + d.code + ')', vscode.CodeActionKind.QuickFix);
       a.command = { command: 'punarnava.applyRule', title: '', arguments: [doc.uri, String(d.code)] };
       a.diagnostics = [d];
       acts.push(a);
     }
     if (acts.length) {
-      const all = new vscode.CodeAction('Punarnava: poori file modern banao (safe)', vscode.CodeActionKind.QuickFix);
+      const all = new vscode.CodeAction('Punarnava: modernize the whole file (safe)', vscode.CodeActionKind.QuickFix);
       all.command = { command: 'punarnava.applySafe', title: '', arguments: [doc.uri] };
-      const learn = new vscode.CodeAction('Punarnava: side-by-side samjhao', vscode.CodeActionKind.QuickFix);
+      const learn = new vscode.CodeAction('Punarnava: explain side-by-side', vscode.CodeActionKind.QuickFix);
       learn.command = { command: 'punarnava.modernize', title: '', arguments: [doc.uri] };
       acts.push(all, learn);
     }
@@ -142,11 +142,11 @@ async function applyToDocument(uri, enabled) {
   if (!doc) return;
   const text = doc.getText();
   const res = safeModernize(text, { enabled, target: cfg().target, lang: cfg().lang });
-  if (!res || res.code === text) { vscode.window.showInformationMessage('Punarnava: is file mein koi modern badlaav nahi mila.'); return; }
+  if (!res || res.code === text) { vscode.window.showInformationMessage('Punarnava: no modern Java changes found in this file.'); return; }
   const edit = new vscode.WorkspaceEdit();
   edit.replace(doc.uri, new vscode.Range(doc.positionAt(0), doc.positionAt(text.length)), res.code);
   await vscode.workspace.applyEdit(edit);
-  vscode.window.setStatusBarMessage('Punarnava: ' + res.changes.length + ' badlaav lage — Ctrl+Z se undo', 5000);
+  vscode.window.setStatusBarMessage('Punarnava: ' + res.changes.length + ' change(s) applied — Ctrl+Z to undo', 5000);
   if (res.minJava >= 25) checkJdk(false);
   if (panel && panelDoc && panelDoc.toString() === doc.uri.toString()) render();
 }
@@ -206,7 +206,7 @@ async function onPanelMessage(m) {
     case 'toggleReview':
       state.review = m.on ? [...new Set([...state.review, m.id])] : state.review.filter(x => x !== m.id);
       render(); break;
-    case 'lang': state.lang = m.lang === 'en' ? 'en' : 'hi'; render(); break;
+    case 'lang': state.lang = m.lang === 'hi' ? 'hi' : 'en'; render(); break;
     case 'target': state.target = Number(m.target) || 25; render(); break;
     case 'apply': await applyToDocument(panelDoc, enabledRules()); break;
     case 'newFile': await openAsNewFile(); break;
@@ -214,7 +214,7 @@ async function onPanelMessage(m) {
       const doc = await docFor(panelDoc);
       const res = safeModernize(doc.getText(), { enabled: enabledRules(), target: state.target, lang: state.lang });
       await vscode.env.clipboard.writeText(res.code);
-      vscode.window.setStatusBarMessage('Punarnava: naya code copy ho gaya', 3000);
+      vscode.window.setStatusBarMessage('Punarnava: modern code copied', 3000);
       break;
     }
     case 'check': await compileCheck(); break;
@@ -252,22 +252,22 @@ let warnedJdk = false;
 function checkJdk(explicit) {
   const j = findJdk();
   if (!j) {
-    if (explicit || !warnedJdk) vscode.window.showWarningMessage('Punarnava: JDK nahi mila. Naya Java (void main, IO) chalane ke liye JDK 25+ chahiye.', 'Download JDK 25')
+    if (explicit || !warnedJdk) vscode.window.showWarningMessage('Punarnava: no JDK found. Running modern Java (void main, IO) needs JDK 25+.', 'Download JDK 25')
       .then(x => { if (x) vscode.env.openExternal(vscode.Uri.parse('https://adoptium.net/temurin/releases/?version=25')); });
     warnedJdk = true; return;
   }
   if (j.version < 25) {
-    if (explicit || !warnedJdk) vscode.window.showWarningMessage('Punarnava: aapka JDK ' + j.version + ' hai. `void main()` aur `IO` ke liye JDK 25+ chahiye — ya settings mein "Target Java" ' + j.version + ' chuno.', 'Download JDK 25')
+    if (explicit || !warnedJdk) vscode.window.showWarningMessage('Punarnava: your JDK is ' + j.version + '. `void main()` and `IO` need JDK 25+ — or choose "Target Java" ' + j.version + ' in settings.', 'Download JDK 25')
       .then(x => { if (x) vscode.env.openExternal(vscode.Uri.parse('https://adoptium.net/temurin/releases/?version=25')); });
     warnedJdk = true; return;
   }
-  if (explicit) vscode.window.showInformationMessage('Punarnava: JDK ' + j.version + ' mila (' + j.javac + ') — naya Java ready hai.');
+  if (explicit) vscode.window.showInformationMessage('Punarnava: JDK ' + j.version + ' found (' + j.javac + ') — ready for modern Java.');
 }
 
 /** Naya code temp folder mein compile karo; result panel mein dikhao */
 async function compileCheck() {
   const j = findJdk();
-  if (!j) { panel?.webview.postMessage({ t: 'check', ok: false, text: 'JDK nahi mila. JDK 25 install karo ya setting punarnava.jdkPath set karo.' }); return; }
+  if (!j) { panel?.webview.postMessage({ t: 'check', ok: false, text: 'No JDK found. Install JDK 25 or set punarnava.jdkPath.' }); return; }
   const doc = await docFor(panelDoc);
   const res = safeModernize(doc.getText(), { enabled: enabledRules(), target: state.target, lang: state.lang });
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'punarnava-'));
@@ -298,7 +298,7 @@ async function runInTerminal(which) {
   // Git Bash ya cmd kuch bhi ho sakta hai, aur quoting har shell mein alag hai.
   const win = process.platform === 'win32';
   const t = vscode.window.createTerminal({
-    name: 'Punarnava · ' + (which === 'old' ? 'purana' : 'naya') + ' Java',
+    name: 'Punarnava · ' + (which === 'old' ? 'old' : 'modern') + ' Java',
     ...(win ? { shellPath: process.env.ComSpec || 'cmd.exe' } : {})
   });
   t.show();
@@ -320,7 +320,7 @@ function mainName(doc, code) {
 async function openExample(context) {
   const dir = path.join(context.extensionPath, 'examples');
   const files = fs.readdirSync(dir).filter(f => f.endsWith('.java'));
-  const pick = await vscode.window.showQuickPick(files.map(f => ({ label: f, description: exampleDesc(f) })), { placeHolder: 'Punarnava: ek purana Java example kholo' });
+  const pick = await vscode.window.showQuickPick(files.map(f => ({ label: f, description: exampleDesc(f) })), { placeHolder: 'Punarnava: open an old-Java example' });
   if (!pick) return;
   // Example ko temp copy mein kholo taaki extension folder ki file na badle
   const tmp = path.join(os.tmpdir(), 'punarnava-examples');
@@ -350,7 +350,7 @@ async function docFor(uri) {
     if (ed && ed.document.languageId === 'java') return ed.document;
     if (panelDoc) return await vscode.workspace.openTextDocument(panelDoc);
   } catch { /* fall through */ }
-  vscode.window.showInformationMessage('Punarnava: pehle ek .java file kholo.');
+  vscode.window.showInformationMessage('Punarnava: open a .java file first.');
   return null;
 }
 

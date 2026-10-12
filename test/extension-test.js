@@ -45,7 +45,7 @@ const tick = () => new Promise(r => setTimeout(r, 30));
 
   // Hints + quick fixes — diagnostics us collection mein hain jo extension ne banayi
   const actions = vscode._actions.provideCodeActions(doc, null, { diagnostics: [{ source: 'Punarnava', code: 'io-println', range: null }] });
-  ok(actions.some(a => /sirf yeh badlaav/.test(a.title)) && actions.some(a => /poori file/.test(a.title)), 'quick fixes offered for a hint');
+  ok(actions.some(a => /apply only this change/.test(a.title)) && actions.some(a => /whole file/.test(a.title)), 'quick fixes offered for a hint');
 
   // Panel
   await vscode.commands.executeCommand('punarnava.modernize', doc.uri);
@@ -75,7 +75,7 @@ const tick = () => new Promise(r => setTimeout(r, 30));
   const expected = modernize(doc.getText(), { enabled: [...defaultEnabled(), 'scanner-to-io'] }).code;
   panel.send({ t: 'apply' }); await tick(); await tick();
   ok(doc.getText() === expected, 'Apply writes exactly the engine output into the document');
-  ok(vscode._messages.some(m => /badlaav lage/.test(m.m)), 'status bar confirms with undo hint');
+  ok(vscode._messages.some(m => /applied .*Ctrl\+Z to undo/.test(m.m)), 'status bar confirms with undo hint', JSON.stringify(vscode._messages));
 
   // Copy
   panel.send({ t: 'copy' }); await tick();

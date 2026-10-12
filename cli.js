@@ -26,7 +26,7 @@ if (!file) {
 const opt = n => { const i = args.indexOf(n); return i >= 0 ? args[i + 1] : undefined; };
 const src = fs.readFileSync(file, 'utf8');
 const enabled = args.includes('--all') ? RULES.map(r => r.id) : defaultEnabled();
-const res = modernize(src, { enabled, lang: opt('--lang') || 'hi', target: Number(opt('--target') || 25) });
+const res = modernize(src, { enabled, lang: opt('--lang') || 'en', target: Number(opt('--target') || 25) });
 
 if (args.includes('--json')) { process.stdout.write(JSON.stringify(res, null, 2) + '\n'); process.exit(0); }
 process.stdout.write(res.code);
