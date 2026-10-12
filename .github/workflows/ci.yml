@@ -1,0 +1,49 @@
+# CI — Punarnava har push par Windows, Linux aur macOS teeno par test hota hai.
+# 1) engine + fixtures: purana vs naya program, javac 25 se compile, output byte-by-byte same
+# 2) extension wiring: mock VS Code par activate/commands/panel
+# 3) asli VS Code (extension host) ke andar smoke test
+# 4) .vsix package banta hai aur artifact ke roop mein save hota hai
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+      - name: Engine + compile + same-output tests
+        shell: bash
+        run: PUNARNAVA_JDK="$JAVA_HOME" node test/run-tests.js
+      - name: Extension wiring tests (mock VS Code)
+        shell: bash
+        run: PUNARNAVA_JDK="$JAVA_HOME" node test/extension-test.js
+      - name: Real VS Code extension-host smoke test
+        shell: bash
+        run: |
+          npm install --no-save @vscode/test-electron@3
+          if [ "$RUNNER_OS" = "Linux" ]; then xvfb-run -a node test/integration/runTest.js; else node test/integration/runTest.js; fi
+      - name: Package .vsix
+        if: matrix.os == 'ubuntu-latest'
+        run: npx --yes @vscode/vsce@3 package -o punarnava.vsix
+      - uses: actions/upload-artifact@v4
+        if: matrix.os == 'ubuntu-latest'
+        with:
+          name: punarnava-vsix
+          path: punarnava.vsix

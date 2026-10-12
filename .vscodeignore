@@ -1,0 +1,6 @@
+test/**
+docs/**
+scripts/**
+.github/**
+**/*.map
+.gitignore

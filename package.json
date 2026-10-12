@@ -1,0 +1,63 @@
+{
+  "name": "punarnava",
+  "displayName": "Punarnava — Old Java to Modern Java (Learn Java 25)",
+  "description": "Turn old Java (public static void main, Scanner, colon switch) into modern Java 25 — side-by-side, with a Hinglish/English explanation and a quiz for every change. Output verified to compile and behave the same.",
+  "version": "1.0.0",
+  "publisher": "KANAKPRABHAKAR",
+  "author": { "name": "Kanak Prabhakar" },
+  "license": "MIT",
+  "icon": "media/icon.png",
+  "galleryBanner": { "color": "#12291f", "theme": "dark" },
+  "repository": { "type": "git", "url": "https://github.com/Kanak234/punarnava.git" },
+  "bugs": { "url": "https://github.com/Kanak234/punarnava/issues" },
+  "homepage": "https://github.com/Kanak234/punarnava#readme",
+  "engines": { "vscode": "^1.85.0" },
+  "categories": ["Education", "Programming Languages", "Linters", "Other"],
+  "keywords": ["java", "java 25", "java 21", "modern java", "migration", "void main", "compact source", "IO.println", "switch expression", "record", "text block", "learn java", "hinglish", "students"],
+  "main": "./extension.js",
+  "activationEvents": ["onLanguage:java"],
+  "contributes": {
+    "commands": [
+      { "command": "punarnava.modernize", "title": "Punarnava: Modernize & Explain (side-by-side)", "icon": "$(sparkle)" },
+      { "command": "punarnava.applySafe", "title": "Punarnava: Apply safe modernizations to this file" },
+      { "command": "punarnava.openExample", "title": "Punarnava: Open an old-Java example" },
+      { "command": "punarnava.checkJdk", "title": "Punarnava: Check my JDK version" }
+    ],
+    "menus": {
+      "editor/title": [
+        { "command": "punarnava.modernize", "when": "resourceLangId == java", "group": "navigation@5" }
+      ],
+      "editor/context": [
+        { "command": "punarnava.modernize", "when": "resourceLangId == java", "group": "1_modification@9" }
+      ],
+      "explorer/context": [
+        { "command": "punarnava.modernize", "when": "resourceExtname == .java", "group": "7_modification@9" }
+      ],
+      "commandPalette": [
+        { "command": "punarnava.applySafe", "when": "editorLangId == java" }
+      ]
+    },
+    "keybindings": [
+      { "command": "punarnava.modernize", "key": "ctrl+alt+j", "mac": "cmd+alt+j", "when": "editorLangId == java" }
+    ],
+    "configuration": {
+      "title": "Punarnava",
+      "properties": {
+        "punarnava.language": { "type": "string", "enum": ["hinglish", "english"], "default": "hinglish", "description": "Language for explanations, mistakes and quiz." },
+        "punarnava.targetJava": { "type": "string", "enum": ["25", "21", "17", "11"], "default": "25", "description": "Only use features available up to this Java version (pick your installed JDK)." },
+        "punarnava.enableReviewRules": {
+          "type": "array", "default": [],
+          "items": { "type": "string", "enum": ["scanner-to-io", "record-class"] },
+          "description": "Review-level rules that can change behaviour slightly (Scanner → IO.readln reads whole lines; record adds equals/hashCode/toString). Off by default."
+        },
+        "punarnava.jdkPath": { "type": "string", "default": "", "description": "JDK folder used for 'Check with javac' and 'Run' (leave empty to use JAVA_HOME / PATH)." },
+        "punarnava.codeLens": { "type": "boolean", "default": true, "description": "Show the '✦ Punarnava' line above main()." },
+        "punarnava.hints": { "type": "boolean", "default": true, "description": "Show modernization hints (with quick fixes) in the Problems view." }
+      }
+    }
+  },
+  "scripts": {
+    "test": "node test/run-tests.js",
+    "package": "vsce package"
+  }
+}
